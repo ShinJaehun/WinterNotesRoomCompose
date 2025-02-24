@@ -1,5 +1,6 @@
 package com.shinjaehun.winternotesroomcompose.presentation
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -23,25 +24,27 @@ import java.util.Date
 import java.util.Locale
 import javax.inject.Inject
 
+private const val TAG = "NoteListViewModel"
+
 @HiltViewModel
 class NoteListViewModel @Inject constructor(
     private val repository: INoteRepository
 ): ViewModel() {
 
-    private val _state = MutableStateFlow(NoteListState(
-        notes = notes
-    ))
-    val state = _state.asStateFlow()
+//    private val _state = MutableStateFlow(NoteListState(
+//        notes = notes
+//    ))
+//    val state = _state.asStateFlow()
 
-//    private val _state = MutableStateFlow(NoteListState())
-//    val state = combine(
-//        _state,
-//        repository.getNotes()
-//    ) { state, notes ->
-//        state.copy(
-//            notes = notes
-//        )
-//    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), NoteListState())
+    private val _state = MutableStateFlow(NoteListState())
+    val state = combine(
+        _state,
+        repository.getNotes()
+    ) { state, notes ->
+        state.copy(
+            notes = notes
+        )
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000L), NoteListState())
 
     var newNote: Note? by mutableStateOf(null)
         private set
@@ -152,6 +155,7 @@ class NoteListViewModel @Inject constructor(
                 }
             }
             is NoteListEvent.SelectNote -> {
+                Log.i(TAG, "clicked note: ${event.note}")
                 _state.update { it.copy(
                     selectedNote = event.note,
                     isSelectedNoteSheetOpen = true
@@ -163,18 +167,14 @@ class NoteListViewModel @Inject constructor(
 
 }
 
-private val notes = (1..30).map {
-    Note(
-        noteId = null,
-        title = "Title $it",
-        contents = "contents $it",
-        dateTime = currentTime(),
-        imageBytes = null,
-        color = null,
-        webLink = null
-    )
-}
-
-internal fun currentTime() = SimpleDateFormat(
-    "yyyy MMMM dd, EEEE, HH:mm a",
-    Locale.getDefault()).format(Date())
+//private val notes = (1..30).map {
+//    Note(
+//        noteId = null,
+//        title = "Title $it",
+//        contents = "contents $it",
+//        dateTime = currentTime(),
+//        imageBytes = null,
+//        color = null,
+//        webLink = null
+//    )
+//}

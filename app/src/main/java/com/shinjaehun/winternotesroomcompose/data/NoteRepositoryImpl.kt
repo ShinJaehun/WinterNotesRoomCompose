@@ -28,25 +28,37 @@ class NoteRepositoryImpl(
     }
 
     override suspend fun insertNote(note: Note) {
-        val beforeUpdateNote = note.noteId?.let { dao.getNoteById(it) }
-        val beforeUpdateNoteImageBytes = beforeUpdateNote?.imagePath?.let {
-            Log.i(TAG, "beforeUpdateNoteImagePath: $it")
-            imageStorage.getImage(it)
-        }
-        val updateNoteImageBytes = note.imageBytes
-        val isSameImage = beforeUpdateNoteImageBytes != null &&
-                updateNoteImageBytes != null &&
-                beforeUpdateNoteImageBytes.contentEquals(updateNoteImageBytes)
-
-        val imagePath: String? = if (isSameImage) {
-            beforeUpdateNote?.imagePath
+        val imagePath: String?
+        if (note.noteId == null) {
+            if (note.imageBytes != null) {
+                Log.i(TAG, "new image!")
+                imagePath = note.imageBytes.let {
+                    imageStorage.saveImage(it)
+                }
+            } else {
+                Log.i(TAG, "no image!")
+                imagePath = null
+            }
         } else {
-            beforeUpdateNote?.imagePath?.let { imageStorage.deleteImage(it) }
-            imageStorage.saveImage(updateNoteImageBytes!!)
+            val beforeUpdateNote = note.noteId?.let { dao.getNoteById(it) }
+            val beforeUpdateNoteImageBytes = beforeUpdateNote?.imagePath?.let {
+                imageStorage.getImage(it)
+            }
+            val updateNoteImageBytes = note.imageBytes
+            val isSameImage = beforeUpdateNoteImageBytes != null &&
+                    updateNoteImageBytes != null &&
+                    beforeUpdateNoteImageBytes.contentEquals(updateNoteImageBytes)
+            if (isSameImage) {
+                Log.i(TAG, "same image!!!!!!!!!!!!!!!!!!!")
+                imagePath = beforeUpdateNote?.imagePath
+            } else {
+                Log.i(TAG, "different image")
+                beforeUpdateNote?.imagePath?.let { imageStorage.deleteImage(it) }
+                imagePath = imageStorage.saveImage(updateNoteImageBytes!!)
+            }
         }
 
         Log.i(TAG, "new Note image path: $imagePath")
-
         dao.insertOrUpdateNote(note.toNoteEntity(imagePath))
     }
 

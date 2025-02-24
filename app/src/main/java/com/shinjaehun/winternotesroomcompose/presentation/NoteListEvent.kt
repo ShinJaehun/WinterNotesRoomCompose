@@ -14,6 +14,7 @@ sealed interface NoteListEvent {
     object OnUrlDeleteClicked: NoteListEvent
 
     data class OnImagePicked(val bytes: ByteArray): NoteListEvent
+    object OnAddImageClicked: NoteListEvent
     object OnImageDeleteClicked: NoteListEvent
 
     object SaveNote: NoteListEvent

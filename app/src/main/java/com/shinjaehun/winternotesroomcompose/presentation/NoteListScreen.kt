@@ -10,6 +10,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -23,6 +24,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.shinjaehun.winternotesroomcompose.presentation.components.AddNoteSheet
+import com.shinjaehun.winternotesroomcompose.presentation.components.NoteDetailSheet
 import com.shinjaehun.winternotesroomcompose.presentation.components.NoteListItem
 
 @Composable
@@ -47,7 +50,7 @@ fun NoteListScreen(
                 shape = RoundedCornerShape(20.dp)
             ) {
                 Icon(
-                   imageVector = Icons.Rounded.Person,
+                   imageVector = Icons.Default.Add,
                    contentDescription = "Add note"
                 )
             }
@@ -74,13 +77,27 @@ fun NoteListScreen(
                 NoteListItem(
                     note = note,
                     modifier = Modifier
-                        .fillMaxWidth()
                         .clickable {
                             onEvent(NoteListEvent.SelectNote(note))
                         }
-                        .padding(horizontal = 16.dp)
                 )
             }
         }
     }
+    NoteDetailSheet(
+        isOpen = state.isSelectedNoteSheetOpen,
+        selectedNote = state.selectedNote,
+        onEvent = onEvent
+    )
+    AddNoteSheet(
+        state = state,
+        newNote = newNote,
+        isOpen = state.isAddNoteSheetOpen,
+        onEvent = { event ->
+            if (event is NoteListEvent.OnAddImageClicked) {
+                imagePicker.pickImage()
+            }
+            onEvent(event)
+        }
+    )
 }
