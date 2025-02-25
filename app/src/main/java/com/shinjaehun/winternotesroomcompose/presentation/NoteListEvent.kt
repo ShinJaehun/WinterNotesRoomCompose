@@ -1,6 +1,7 @@
 package com.shinjaehun.winternotesroomcompose.presentation
 
 import com.shinjaehun.winternotesroomcompose.domain.Note
+import com.shinjaehun.winternotesroomcompose.domain.ImageColor
 
 sealed interface NoteListEvent {
     object OnAddNewNoteClick: NoteListEvent
@@ -8,7 +9,8 @@ sealed interface NoteListEvent {
 
     data class OnTitleChanged(val value: String): NoteListEvent
     data class OnContentsChanged(val value: String): NoteListEvent
-    data class OnColorChanged(val value: String): NoteListEvent
+
+    data class OnColorChanged(val value: ImageColor): NoteListEvent
 
     data class OnUrlChanged(val value: String): NoteListEvent
     object OnUrlDeleteClicked: NoteListEvent

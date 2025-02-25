@@ -40,20 +40,22 @@ class NoteRepositoryImpl(
                 imagePath = null
             }
         } else {
-            val beforeUpdateNote = note.noteId?.let { dao.getNoteById(it) }
-            val beforeUpdateNoteImageBytes = beforeUpdateNote?.imagePath?.let {
+            val beforeUpdateNote = note.noteId.let { dao.getNoteById(it) }
+            val beforeUpdateNoteImageBytes = beforeUpdateNote.imagePath?.let {
                 imageStorage.getImage(it)
             }
             val updateNoteImageBytes = note.imageBytes
-            val isSameImage = beforeUpdateNoteImageBytes != null &&
+            val isSameImage = (beforeUpdateNoteImageBytes != null &&
                     updateNoteImageBytes != null &&
-                    beforeUpdateNoteImageBytes.contentEquals(updateNoteImageBytes)
+                    beforeUpdateNoteImageBytes.contentEquals(updateNoteImageBytes)) ||
+                    (beforeUpdateNoteImageBytes == null &&
+                            updateNoteImageBytes == null)
             if (isSameImage) {
                 Log.i(TAG, "same image!!!!!!!!!!!!!!!!!!!")
-                imagePath = beforeUpdateNote?.imagePath
+                imagePath = beforeUpdateNote.imagePath
             } else {
                 Log.i(TAG, "different image")
-                beforeUpdateNote?.imagePath?.let { imageStorage.deleteImage(it) }
+                beforeUpdateNote.imagePath?.let { imageStorage.deleteImage(it) }
                 imagePath = imageStorage.saveImage(updateNoteImageBytes!!)
             }
         }

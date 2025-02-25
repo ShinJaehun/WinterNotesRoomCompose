@@ -102,6 +102,7 @@ class NoteListViewModel @Inject constructor(
                 )
             }
             is NoteListEvent.OnColorChanged -> {
+                Log.i(TAG, "color selected: ${event.value.toString()}")
                 newNote = newNote?.copy(
                     color = event.value
                 )

@@ -1,5 +1,7 @@
 package com.shinjaehun.winternotesroomcompose.data
 
+import androidx.compose.foundation.Image
+import com.shinjaehun.winternotesroomcompose.domain.ImageColor
 import com.shinjaehun.winternotesroomcompose.domain.Note
 
 suspend fun NoteEntity.toNote(imageStorage: ImageStorage): Note {
@@ -9,7 +11,13 @@ suspend fun NoteEntity.toNote(imageStorage: ImageStorage): Note {
         contents = contents,
         dateTime = dateTime,
         imageBytes = imagePath?.let { imageStorage.getImage(it) },
-        color = color,
+        color = when(color) {
+            "WHITE" -> ImageColor.WHITE
+            "RED" -> ImageColor.RED
+            "GREEN" -> ImageColor.GREEN
+            "YELLOW" -> ImageColor.YELLOW
+            else -> null
+        },
         webLink = webLink
     )
 }
@@ -21,7 +29,7 @@ fun Note.toNoteEntity(imagePath: String?): NoteEntity {
         contents = contents,
         dateTime = dateTime,
         imagePath = imagePath,
-        color = color,
+        color = color.toString(),
         webLink = webLink
     )
 }
