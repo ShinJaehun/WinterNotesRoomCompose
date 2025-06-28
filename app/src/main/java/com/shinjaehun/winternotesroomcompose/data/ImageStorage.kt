@@ -52,29 +52,29 @@ class ImageStorage (
 //    }
 
     suspend fun saveImageAndThumbnail(bytes: ByteArray): ImagePathResult {
-        val bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+        return withContext(Dispatchers.IO) {
+            val bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
 
-        val imageFileName = "note_image_${System.currentTimeMillis()}.jpg"
-        val imageFile = File(context.filesDir, imageFileName)
-        context.openFileOutput(imageFileName, Context.MODE_PRIVATE).use { outputStream ->
-            outputStream.write(bytes)
-        }
-        withContext(Dispatchers.IO) {
+            val imageFileName = "note_image_${System.currentTimeMillis()}.jpg"
+            val imageFile = File(context.filesDir, imageFileName)
+            context.openFileOutput(imageFileName, Context.MODE_PRIVATE).use { outputStream ->
+                outputStream.write(bytes)
+            }
+
             FileOutputStream(imageFile).use { out ->
                 bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out)
             }
-        }
 
-        val thumbnail = Bitmap.createScaledBitmap(bitmap, 100, 100, true)
-        val thumbFileName = "thumb_${imageFileName}"
-        val thumbFile = File(context.filesDir, thumbFileName)
-        withContext(Dispatchers.IO) {
+            val thumbnail = Bitmap.createScaledBitmap(bitmap, 100, 100, true)
+            val thumbFileName = "thumb_${imageFileName}"
+            val thumbFile = File(context.filesDir, thumbFileName)
+
             FileOutputStream(thumbFile).use { out ->
                 thumbnail.compress(Bitmap.CompressFormat.JPEG, 80, out)
             }
-        }
 
-        return ImagePathResult(imageFile.absolutePath, thumbFile.absolutePath)
+            ImagePathResult(imageFile.absolutePath, thumbFile.absolutePath)
+        }
     }
 
     suspend fun getImage(fileName: String): ByteArray {
@@ -85,7 +85,11 @@ class ImageStorage (
 //        }
         return withContext(Dispatchers.IO) {
             val file = File(fileName)
-            file.inputStream().use { it.readBytes() }
+            if (!file.exists()) {
+                ByteArray(0)
+            } else {
+                file.inputStream().use { it.readBytes() }
+            }
         }
     }
 

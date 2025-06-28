@@ -106,6 +106,8 @@ class NoteListViewModel @Inject constructor(
                     dateTime = currentTime(),
                     imageBytes = null,
                     thumbnailBytes = null,
+                    imagePath = null,
+                    thumbnailPath = null,
                     color = null,
                     webLink = null,
                 )
@@ -155,7 +157,7 @@ class NoteListViewModel @Inject constructor(
                         ) }
                         viewModelScope.launch {
                             repository.insertNote(note)
-                            delay(300L)
+                            delay(300L)  // UI가 닫히는 애니메이션 타이밍 보장
                             newNote = null
                             _state.update { it.copy(isLoading = false) }
                         }
@@ -168,18 +170,36 @@ class NoteListViewModel @Inject constructor(
                     }
                 }
             }
+//            is NoteListEvent.SelectNote -> {
+//                Log.i(TAG, "clicked note: ${event.note}")
+//                viewModelScope.launch {
+//                    _state.update { it.copy(isLoading = true) }
+//
+//                    delay(100)
+//                    _state.update { it.copy(
+//                        selectedNote = event.note,
+//                        isSelectedNoteSheetOpen = true,
+//                        isLoading = false
+//                    )}
+//                 }
+//            }
+
             is NoteListEvent.SelectNote -> {
                 Log.i(TAG, "clicked note: ${event.note}")
                 viewModelScope.launch {
                     _state.update { it.copy(isLoading = true) }
 
-                    delay(100)
-                    _state.update { it.copy(
-                        selectedNote = event.note,
-                        isSelectedNoteSheetOpen = true,
-                        isLoading = false
-                    )}
-                 }
+                    delay(100)   // UI가 닫히는 애니메이션 타이밍 보장
+
+                    val lightNote = event.note.copy(imageBytes = null) // 이미지 제거
+                    _state.update {
+                        it.copy(
+                            selectedNote = lightNote,
+                            isSelectedNoteSheetOpen = true,
+                            isLoading = false
+                        )
+                    }
+                }
             }
             else -> Unit
         }

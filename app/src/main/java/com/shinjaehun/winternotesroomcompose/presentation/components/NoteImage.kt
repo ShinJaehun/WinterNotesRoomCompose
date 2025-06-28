@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -14,6 +15,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
@@ -34,27 +36,58 @@ fun NoteImage(
     }
 
     val bitmap = rememberBitmapFromBytes(imageBytes)
+
     val imageModifier = modifier.clip(RoundedCornerShape(35))
 
-    if (bitmap != null) {
-        Image(
-            bitmap = bitmap,
-            contentDescription = title,
-            modifier = imageModifier,
-            contentScale = ContentScale.Crop
-        )
-    } else {
-       Box(
-          modifier = imageModifier
-              .background(MaterialTheme.colorScheme.secondaryContainer),
-          contentAlignment = Alignment.Center
-       )  {
-          Icon(
-              painter = painterResource(R.drawable.ic_image),
-              contentDescription = title,
-              modifier = Modifier.size(iconSize),
-              tint = MaterialTheme.colorScheme.onSecondaryContainer
-          )
-       }
+//    if (bitmap != null) {
+//        Image(
+//            bitmap = bitmap,
+//            contentDescription = title,
+//            modifier = imageModifier,
+//            contentScale = ContentScale.Crop
+//        )
+//    } else {
+//       Box(
+//          modifier = imageModifier
+//              .background(MaterialTheme.colorScheme.secondaryContainer),
+//          contentAlignment = Alignment.Center
+//       )  {
+//          Icon(
+//              painter = painterResource(R.drawable.ic_image),
+//              contentDescription = title,
+//              modifier = Modifier.size(iconSize),
+//              tint = MaterialTheme.colorScheme.onSecondaryContainer
+//          )
+//       }
+//    }
+
+    Box(
+        modifier = imageModifier
+            .background(MaterialTheme.colorScheme.secondaryContainer),
+        contentAlignment = Alignment.Center
+    ) {
+        when {
+            bitmap != null -> {
+                Image(
+                    bitmap = bitmap,
+                    contentDescription = title,
+                    modifier = Modifier.matchParentSize(),
+                    contentScale = ContentScale.Crop
+                )
+            }
+            imageBytes != null -> {
+                // 이미지 존재하지만 아직 로딩 중일 때
+                CircularProgressIndicator(modifier = Modifier.size(iconSize))
+            }
+            else -> {
+                // 이미지 자체가 없을 때
+                Icon(
+                    painter = painterResource(R.drawable.ic_image),
+                    contentDescription = title,
+                    modifier = Modifier.size(iconSize),
+                    tint = MaterialTheme.colorScheme.onSecondaryContainer
+                )
+            }
+        }
     }
 }

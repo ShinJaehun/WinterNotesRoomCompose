@@ -25,14 +25,21 @@ import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.shinjaehun.winternotesroomcompose.data.ImageStorage
 import com.shinjaehun.winternotesroomcompose.domain.Note
 import com.shinjaehun.winternotesroomcompose.presentation.NoteListEvent
 
@@ -43,6 +50,19 @@ fun NoteDetailSheet(
     onEvent: (NoteListEvent) -> Unit,
     modifier: Modifier = Modifier
 ) {
+
+    val context = LocalContext.current
+    val imageStorage = remember { ImageStorage(context) }
+
+    var imageBytes by remember { mutableStateOf<ByteArray?>(null) }
+
+    // 이미지 비동기 로드
+    LaunchedEffect(selectedNote?.imagePath) {
+        imageBytes = selectedNote?.imagePath?.let { path ->
+            imageStorage.getImage(path)
+        }
+    }
+
     BottomSheetFromWish(
         visible = isOpen,
         modifier = modifier.fillMaxWidth()
@@ -58,7 +78,8 @@ fun NoteDetailSheet(
                 Spacer(Modifier.height(60.dp))
                 NoteImage(
                     title = selectedNote?.title,
-                    imageBytes = selectedNote?.imageBytes,
+//                    imageBytes = selectedNote?.imageBytes,
+                    imageBytes = imageBytes,
                     iconSize = 50.dp,
                     modifier = Modifier
                         .size(150.dp)

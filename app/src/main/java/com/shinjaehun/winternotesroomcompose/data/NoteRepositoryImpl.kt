@@ -80,11 +80,18 @@ class NoteRepositoryImpl(
                 imageStorage.getImage(it)
             }
             val updateNoteImageBytes = note.imageBytes
+//            val isSameImage = (beforeUpdateNoteImageBytes != null &&
+//                    updateNoteImageBytes != null &&
+//                    beforeUpdateNoteImageBytes.contentEquals(updateNoteImageBytes)) ||
+//                    (beforeUpdateNoteImageBytes == null &&
+//                            updateNoteImageBytes == null)
+
             val isSameImage = (beforeUpdateNoteImageBytes != null &&
                     updateNoteImageBytes != null &&
+                    beforeUpdateNoteImageBytes.contentHashCode() == updateNoteImageBytes.contentHashCode() &&
                     beforeUpdateNoteImageBytes.contentEquals(updateNoteImageBytes)) ||
-                    (beforeUpdateNoteImageBytes == null &&
-                            updateNoteImageBytes == null)
+                    (beforeUpdateNoteImageBytes == null && updateNoteImageBytes == null)
+
             imagePathResult = if (isSameImage) {
                 Log.i(TAG, "same image!!!!!!!!!!!!!!!!!!!")
                 ImagePathResult(

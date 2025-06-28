@@ -32,7 +32,7 @@ fun NoteListItem(
 ) {
     Card(
         modifier = modifier
-            .fillMaxSize()
+//            .fillMaxSize()
             .padding(horizontal = 16.dp)
             .height(IntrinsicSize.Min),
         colors = CardDefaults.cardColors(
