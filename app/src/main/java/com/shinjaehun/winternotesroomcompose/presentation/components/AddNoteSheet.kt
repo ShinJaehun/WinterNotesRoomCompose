@@ -83,7 +83,8 @@ fun AddNoteSheet(
                     }
                 } else {
                     NoteImage(
-                        note = newNote,
+                        title = newNote.title,
+                        imageBytes = newNote.imageBytes,
                         modifier = Modifier
                             .size(150.dp)
                             .clickable {

@@ -1,5 +1,6 @@
 package com.shinjaehun.winternotesroomcompose.presentation.components
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -9,6 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -21,17 +23,23 @@ import com.shinjaehun.winternotesroomcompose.domain.Note
 
 @Composable
 fun NoteImage(
-    note: Note?,
+    title: String?,
+    imageBytes: ByteArray?,
     modifier: Modifier = Modifier,
     iconSize: Dp = 25.dp
 ) {
-    val bitmap = rememberBitmapFromBytes(note?.imageBytes)
+
+    LaunchedEffect(imageBytes) {
+        Log.i("NoteDebug", "imageBytes 크기: ${imageBytes?.size ?: 0} bytes")
+    }
+
+    val bitmap = rememberBitmapFromBytes(imageBytes)
     val imageModifier = modifier.clip(RoundedCornerShape(35))
 
     if (bitmap != null) {
         Image(
             bitmap = bitmap,
-            contentDescription = note?.title,
+            contentDescription = title,
             modifier = imageModifier,
             contentScale = ContentScale.Crop
         )
@@ -43,7 +51,7 @@ fun NoteImage(
        )  {
           Icon(
               painter = painterResource(R.drawable.ic_image),
-              contentDescription = note?.title,
+              contentDescription = title,
               modifier = Modifier.size(iconSize),
               tint = MaterialTheme.colorScheme.onSecondaryContainer
           )

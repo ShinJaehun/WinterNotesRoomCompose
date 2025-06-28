@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Edit
@@ -56,7 +57,8 @@ fun NoteDetailSheet(
             ) {
                 Spacer(Modifier.height(60.dp))
                 NoteImage(
-                    note = selectedNote,
+                    title = selectedNote?.title,
+                    imageBytes = selectedNote?.imageBytes,
                     iconSize = 50.dp,
                     modifier = Modifier
                         .size(150.dp)
@@ -90,7 +92,7 @@ fun NoteDetailSheet(
                 NoteInfoSection(
                     title = "Web Link",
                     value = selectedNote?.webLink ?: "",
-                    icon = null,
+                    icon = Icons.Default.Home,
                     modifier = Modifier.fillMaxWidth()
                 )
             }
@@ -154,15 +156,17 @@ fun NoteInfoSection(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically
     ) {
-//        Icon(
-//            imageVector = icon,
-//            contentDescription = null,
-//            modifier = Modifier
-//                .clip(CircleShape)
-//                .background(MaterialTheme.colorScheme.secondaryContainer)
-//                .padding(8.dp),
-//            tint = MaterialTheme.colorScheme.onSecondaryContainer
-//        )
+        if (icon != null) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                modifier = Modifier
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.secondaryContainer)
+                    .padding(8.dp),
+                tint = MaterialTheme.colorScheme.onSecondaryContainer
+            )
+        }
         Spacer(Modifier.width(16.dp))
         Column(
             modifier = Modifier.weight(1f),
@@ -182,6 +186,4 @@ fun NoteInfoSection(
             )
         }
     }
-
-
 }

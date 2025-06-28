@@ -2,6 +2,7 @@ package com.shinjaehun.winternotesroomcompose.presentation
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,6 +13,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.rounded.Person
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
@@ -19,6 +21,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
@@ -73,7 +76,10 @@ fun NoteListScreen(
                 )
             }
 
-            items(state.notes) { note ->
+            items(
+                items = state.notes,
+                key = { it.noteId ?: it.hashCode() } // noteId가 null인 경우까지 대비
+            ) { note ->
                 NoteListItem(
                     note = note,
                     modifier = Modifier
@@ -84,20 +90,29 @@ fun NoteListScreen(
             }
         }
     }
-    NoteDetailSheet(
-        isOpen = state.isSelectedNoteSheetOpen,
-        selectedNote = state.selectedNote,
-        onEvent = onEvent
-    )
-    AddNoteSheet(
-        state = state,
-        newNote = newNote,
-        isOpen = state.isAddNoteSheetOpen,
-        onEvent = { event ->
-            if (event is NoteListEvent.OnAddImageClicked) {
-                imagePicker.pickImage()
-            }
-            onEvent(event)
+    if(state.isLoading) {
+        Box(
+            Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator()
         }
-    )
+    } else {
+        NoteDetailSheet(
+            isOpen = state.isSelectedNoteSheetOpen,
+            selectedNote = state.selectedNote,
+            onEvent = onEvent
+        )
+        AddNoteSheet(
+            state = state,
+            newNote = newNote,
+            isOpen = state.isAddNoteSheetOpen,
+            onEvent = { event ->
+                if (event is NoteListEvent.OnAddImageClicked) {
+                    imagePicker.pickImage()
+                }
+                onEvent(event)
+            }
+        )
+    }
 }

@@ -11,5 +11,7 @@ data class NoteListState(
     val isSelectedNoteSheetOpen: Boolean = false,
 
     val titleError: String? = null,
-    val contentsError: String? = null
+    val contentsError: String? = null,
+
+    val isLoading: Boolean = false
 )

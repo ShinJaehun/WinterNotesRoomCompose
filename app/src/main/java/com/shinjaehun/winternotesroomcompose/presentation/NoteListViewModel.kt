@@ -52,6 +52,7 @@ class NoteListViewModel @Inject constructor(
     fun onEvent(event: NoteListEvent) {
         when(event) {
             NoteListEvent.DeleteNote -> {
+                _state.update { it.copy(isLoading = true) }
                 viewModelScope.launch {
                     _state.value.selectedNote?.noteId?.let { id ->
                         _state.update { it.copy(
@@ -60,12 +61,14 @@ class NoteListViewModel @Inject constructor(
                         repository.deleteNote(id)
                         delay(300L)
                         _state.update { it.copy(
-                            selectedNote = null
+                            selectedNote = null,
+                            isLoading = false
                         ) }
                     }
                 }
             }
             NoteListEvent.DismissNote -> {
+                _state.update { it.copy(isLoading = true) }
                 viewModelScope.launch {
                     _state.update { it.copy(
                         isSelectedNoteSheetOpen = false,
@@ -75,21 +78,26 @@ class NoteListViewModel @Inject constructor(
                     ) }
                     delay(300L)
                     _state.update { it.copy(
-                        selectedNote = null
+                        selectedNote = null,
+                        isLoading = false
                     ) }
                 }
             }
             is NoteListEvent.EditNote -> {
+                _state.update { it.copy(isLoading = true) }
                 _state.update { it.copy(
                     selectedNote = null,
                     isAddNoteSheetOpen = true,
-                    isSelectedNoteSheetOpen = false
+                    isSelectedNoteSheetOpen = false,
+                    isLoading = false
                 ) }
                 newNote = event.note
             }
             NoteListEvent.OnAddNewNoteClick -> {
+                _state.update { it.copy(isLoading = true) }
                 _state.update { it.copy(
-                    isAddNoteSheetOpen = true
+                    isAddNoteSheetOpen = true,
+                    isLoading = false
                 ) }
                 newNote = Note(
                     noteId = null,
@@ -97,6 +105,7 @@ class NoteListViewModel @Inject constructor(
                     contents = "",
                     dateTime = currentTime(),
                     imageBytes = null,
+                    thumbnailBytes = null,
                     color = null,
                     webLink = null,
                 )
@@ -113,6 +122,7 @@ class NoteListViewModel @Inject constructor(
                 )
             }
             is NoteListEvent.OnImagePicked -> {
+                Log.i(TAG, "On Image Picked, Image Bytes: ${event.bytes}")
                 newNote = newNote?.copy(
                     imageBytes = event.bytes
                 )
@@ -130,6 +140,7 @@ class NoteListViewModel @Inject constructor(
             }
             NoteListEvent.OnUrlDeleteClicked -> TODO()
             NoteListEvent.SaveNote -> {
+                _state.update { it.copy(isLoading = true) }
                 newNote?.let { note ->
                     val result = NoteValidator.validateNote(note)
                     val errors = listOfNotNull(
@@ -146,21 +157,29 @@ class NoteListViewModel @Inject constructor(
                             repository.insertNote(note)
                             delay(300L)
                             newNote = null
+                            _state.update { it.copy(isLoading = false) }
                         }
                     } else {
                         _state.update { it.copy(
                             titleError = result.titleError,
-                            contentsError = result.contentError
+                            contentsError = result.contentError,
+                            isLoading = false
                         ) }
                     }
                 }
             }
             is NoteListEvent.SelectNote -> {
                 Log.i(TAG, "clicked note: ${event.note}")
-                _state.update { it.copy(
-                    selectedNote = event.note,
-                    isSelectedNoteSheetOpen = true
-                ) }
+                viewModelScope.launch {
+                    _state.update { it.copy(isLoading = true) }
+
+                    delay(100)
+                    _state.update { it.copy(
+                        selectedNote = event.note,
+                        isSelectedNoteSheetOpen = true,
+                        isLoading = false
+                    )}
+                 }
             }
             else -> Unit
         }

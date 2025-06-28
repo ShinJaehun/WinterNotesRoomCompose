@@ -53,7 +53,8 @@ fun NoteListItem(
                 contentAlignment = Alignment.Center
             ){
                 NoteImage(
-                    note = note,
+                    title = note.title,
+                    imageBytes = note.thumbnailBytes,
                     modifier = Modifier.size(80.dp)
                 )
             }

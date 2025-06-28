@@ -6,6 +6,7 @@ data class Note(
     val contents: String,
     val dateTime: String,
     val imageBytes: ByteArray?,
+    val thumbnailBytes: ByteArray?,
     val color: ImageColor?,
     val webLink: String?,
 )

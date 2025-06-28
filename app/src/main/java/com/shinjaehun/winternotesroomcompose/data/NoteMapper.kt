@@ -11,6 +11,7 @@ suspend fun NoteEntity.toNote(imageStorage: ImageStorage): Note {
         contents = contents,
         dateTime = dateTime,
         imageBytes = imagePath?.let { imageStorage.getImage(it) },
+        thumbnailBytes = thumbnailPath?.let { imageStorage.getImage(it)},
         color = when(color) {
             "WHITE" -> ImageColor.WHITE
             "RED" -> ImageColor.RED
@@ -22,13 +23,14 @@ suspend fun NoteEntity.toNote(imageStorage: ImageStorage): Note {
     )
 }
 
-fun Note.toNoteEntity(imagePath: String?): NoteEntity {
+fun Note.toNoteEntity(imagePath: String?, thumbnailPath: String?): NoteEntity {
     return NoteEntity(
         noteId = noteId,
         title = title,
         contents = contents,
         dateTime = dateTime,
         imagePath = imagePath,
+        thumbnailPath = thumbnailPath,
         color = color.toString(),
         webLink = webLink
     )

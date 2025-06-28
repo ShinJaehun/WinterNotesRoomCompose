@@ -25,6 +25,9 @@ data class NoteEntity(
     @ColumnInfo(name = "image_path")
     val imagePath: String? = null,
 
+    @ColumnInfo(name = "thumbnail_path")
+    val thumbnailPath: String? = null,
+
     @ColumnInfo(name = "color")
     val color: String? = null,
 
