@@ -10,9 +10,9 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 
-class ImageStorage (
+class ImageStorage(
     private val context: Context
-) {
+) : IImageStorage {
 //    suspend fun saveImage(bytes: ByteArray): String {
 //        return withContext(Dispatchers.IO) {
 //            val fileName = UUID.randomUUID().toString() + ".jpg"
@@ -51,7 +51,7 @@ class ImageStorage (
 //        return Pair(imageFile.absolutePath, thumbFile.absolutePath)
 //    }
 
-    suspend fun saveImageAndThumbnail(bytes: ByteArray): ImagePathResult {
+    override suspend fun saveImageAndThumbnail(bytes: ByteArray): ImagePathResult {
         return withContext(Dispatchers.IO) {
             val bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
 
@@ -77,7 +77,7 @@ class ImageStorage (
         }
     }
 
-    suspend fun getImage(fileName: String): ByteArray {
+    override suspend fun getImage(fileName: String): ByteArray {
 //        return withContext(Dispatchers.IO) {
 //            context.openFileInput(fileName).use { inputStream ->
 //                inputStream.readBytes()
@@ -93,7 +93,7 @@ class ImageStorage (
         }
     }
 
-    suspend fun deleteImage(fileName: String) {
+    override suspend fun deleteImage(fileName: String) {
         return withContext(Dispatchers.IO) {
 //            context.deleteFile(fileName)
             val file = File(fileName)

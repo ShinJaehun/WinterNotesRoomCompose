@@ -31,9 +31,10 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    NoteListScreen(
-                        imagePicker = ImagePickerFactory().createPicker()
-                    )
+//                    NoteListScreen(
+//                        imagePicker = ImagePickerFactory().createPicker()
+//                    )
+                    NoteListScreen()
                 }
 
             }

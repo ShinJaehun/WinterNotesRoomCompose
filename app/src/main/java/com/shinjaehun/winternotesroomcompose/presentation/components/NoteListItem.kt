@@ -54,7 +54,7 @@ fun NoteListItem(
             ){
                 NoteImage(
                     title = note.title,
-                    imageBytes = note.thumbnailBytes,
+                    imagePath = note.thumbnailPath,
                     modifier = Modifier.size(80.dp)
                 )
             }

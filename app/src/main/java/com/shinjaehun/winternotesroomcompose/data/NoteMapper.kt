@@ -47,14 +47,35 @@ import kotlinx.coroutines.coroutineScope
 //    )
 //}
 
-suspend fun NoteEntity.toNote(imageStorage: ImageStorage): Note {
+//suspend fun NoteEntity.toNote(imageStorage: ImageStorage): Note {
+//    return Note(
+//        noteId = noteId,
+//        title = title,
+//        contents = contents,
+//        dateTime = dateTime,
+//        imageBytes = null,   // <- Lazy load 용으로 비워둠
+//        thumbnailBytes = thumbnailPath?.let { imageStorage.getImage(it)},
+//        imagePath = imagePath,
+//        thumbnailPath = thumbnailPath,
+//        color = when(color) {
+//            "WHITE" -> ImageColor.WHITE
+//            "RED" -> ImageColor.RED
+//            "GREEN" -> ImageColor.GREEN
+//            "YELLOW" -> ImageColor.YELLOW
+//            else -> null
+//        },
+//        webLink = webLink
+//    )
+//}
+
+fun NoteEntity.toNote(): Note {
     return Note(
         noteId = noteId,
         title = title,
         contents = contents,
         dateTime = dateTime,
-        imageBytes = null,   // <- Lazy load 용으로 비워둠
-        thumbnailBytes = thumbnailPath?.let { imageStorage.getImage(it)},
+//        imageBytes = null,   // <- Lazy load 용으로 비워둠
+//        thumbnailBytes = thumbnailPath?.let { imageStorage.getImage(it)},
         imagePath = imagePath,
         thumbnailPath = thumbnailPath,
         color = when(color) {
@@ -68,7 +89,7 @@ suspend fun NoteEntity.toNote(imageStorage: ImageStorage): Note {
     )
 }
 
-fun Note.toNoteEntity(imagePath: String?, thumbnailPath: String?): NoteEntity {
+fun Note.toNoteEntity(): NoteEntity {
     return NoteEntity(
         noteId = noteId,
         title = title,

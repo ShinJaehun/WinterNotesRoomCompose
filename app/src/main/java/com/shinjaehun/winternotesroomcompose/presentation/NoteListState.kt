@@ -13,5 +13,6 @@ data class NoteListState(
     val titleError: String? = null,
     val contentsError: String? = null,
 
-    val isLoading: Boolean = false
+    val isLoading: Boolean = false,
+    val tempImageBytes: ByteArray? = null
 )

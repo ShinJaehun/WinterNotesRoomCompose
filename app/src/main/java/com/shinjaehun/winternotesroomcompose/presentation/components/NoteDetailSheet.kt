@@ -51,17 +51,17 @@ fun NoteDetailSheet(
     modifier: Modifier = Modifier
 ) {
 
-    val context = LocalContext.current
-    val imageStorage = remember { ImageStorage(context) }
-
-    var imageBytes by remember { mutableStateOf<ByteArray?>(null) }
-
-    // 이미지 비동기 로드
-    LaunchedEffect(selectedNote?.imagePath) {
-        imageBytes = selectedNote?.imagePath?.let { path ->
-            imageStorage.getImage(path)
-        }
-    }
+//    val context = LocalContext.current
+//    val imageStorage = remember { ImageStorage(context) }
+//
+//    var imageBytes by remember { mutableStateOf<ByteArray?>(null) }
+//
+//    // 이미지 비동기 로드
+//    LaunchedEffect(selectedNote?.imagePath) {
+//        imageBytes = selectedNote?.imagePath?.let { path ->
+//            imageStorage.getImage(path)
+//        }
+//    }
 
     BottomSheetFromWish(
         visible = isOpen,
@@ -79,7 +79,8 @@ fun NoteDetailSheet(
                 NoteImage(
                     title = selectedNote?.title,
 //                    imageBytes = selectedNote?.imageBytes,
-                    imageBytes = imageBytes,
+//                    imageBytes = imageBytes,
+                    imagePath = selectedNote?.imagePath,
                     iconSize = 50.dp,
                     modifier = Modifier
                         .size(150.dp)

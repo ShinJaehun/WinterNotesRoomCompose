@@ -1,5 +1,6 @@
 package com.shinjaehun.winternotesroomcompose.presentation
 
+import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -21,6 +22,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -34,7 +36,8 @@ import com.shinjaehun.winternotesroomcompose.presentation.components.NoteListIte
 @Composable
 fun NoteListScreen(
     viewModel: NoteListViewModel = viewModel(),
-    imagePicker: ImagePicker
+//    imagePicker: ImagePicker
+    imagePicker: ImagePicker = rememberImagePicker() // ← 외부에서 주입 가능 + 기본값도 설정
 ) {
     val state by viewModel.state.collectAsState()
     val onEvent = viewModel::onEvent
@@ -114,5 +117,13 @@ fun NoteListScreen(
                 onEvent(event)
             }
         )
+    }
+}
+
+@Composable
+fun rememberImagePicker(): ImagePicker {
+    val activity = LocalActivity.current
+    return remember(activity) {
+        ImagePicker(activity)
     }
 }

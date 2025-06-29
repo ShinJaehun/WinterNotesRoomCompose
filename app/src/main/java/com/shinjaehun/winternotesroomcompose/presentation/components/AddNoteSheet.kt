@@ -1,5 +1,6 @@
 package com.shinjaehun.winternotesroomcompose.presentation.components
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -18,6 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -29,8 +31,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImage
 import com.shinjaehun.winternotesroomcompose.R
 import com.shinjaehun.winternotesroomcompose.domain.ImageColor
 import com.shinjaehun.winternotesroomcompose.domain.Note
@@ -58,33 +62,69 @@ fun AddNoteSheet(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Spacer(Modifier.height(60.dp))
-                if(newNote?.imageBytes == null) {
+
+//                if(state.tempImageBytes == null) {
+//                    Box(
+//                        modifier = Modifier
+//                            .size(150.dp)
+//                            .clip(RoundedCornerShape(40))
+//                            .background(MaterialTheme.colorScheme.secondaryContainer)
+//                            .clickable {
+//                                onEvent(NoteListEvent.OnAddImageClicked)
+//                            }
+//                            .border(
+//                                width = 1.dp,
+//                                color = MaterialTheme.colorScheme.onSecondaryContainer,
+//                                shape = RoundedCornerShape(40)
+//                            ),
+//                        contentAlignment = Alignment.Center
+//                    ) {
+//                        Icon(
+//                            painter = painterResource(R.drawable.ic_image),
+//                            contentDescription = "Add Image",
+//                            modifier = Modifier.size(40.dp),
+//                            tint = MaterialTheme.colorScheme.onSecondaryContainer
+//                        )
+//                    }
+//                } else {
+//                    NoteImage(
+//                        title = newNote?.title,
+////                        imageBytes = newNote.imageBytes,
+//                        imagePath = newNote?.imagePath,
+//                        modifier = Modifier
+//                            .size(150.dp)
+//                            .clickable {
+//                                onEvent(NoteListEvent.OnAddImageClicked)
+//                            }
+//                    )
+//                }
+
+                if(state.tempImageBytes != null) {
+                    val bitmap = rememberBitmapFromBytes(state.tempImageBytes)
+
                     Box(
                         modifier = Modifier
                             .size(150.dp)
                             .clip(RoundedCornerShape(40))
                             .background(MaterialTheme.colorScheme.secondaryContainer)
-                            .clickable {
-                                onEvent(NoteListEvent.OnAddImageClicked)
-                            }
-                            .border(
-                                width = 1.dp,
-                                color = MaterialTheme.colorScheme.onSecondaryContainer,
-                                shape = RoundedCornerShape(40)
-                            ),
+                            .clickable { onEvent(NoteListEvent.OnAddImageClicked) },
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(
-                            painter = painterResource(R.drawable.ic_image),
-                            contentDescription = "Add Image",
-                            modifier = Modifier.size(40.dp),
-                            tint = MaterialTheme.colorScheme.onSecondaryContainer
-                        )
+                        if (bitmap != null) {
+                            Image(
+                                bitmap = bitmap,
+                                contentDescription = newNote?.title,
+                                modifier = Modifier.matchParentSize(),
+                                contentScale = ContentScale.Crop
+                            )
+                        } else {
+                            CircularProgressIndicator(modifier = Modifier.size(25.dp))
+                        }
                     }
                 } else {
                     NoteImage(
-                        title = newNote.title,
-                        imageBytes = newNote.imageBytes,
+                        title = newNote?.title,
+                        imagePath = newNote?.imagePath,
                         modifier = Modifier
                             .size(150.dp)
                             .clickable {
@@ -92,6 +132,7 @@ fun AddNoteSheet(
                             }
                     )
                 }
+
                 Spacer(Modifier.height(16.dp))
                 NoteTextField(
                     value = newNote?.title ?: "",

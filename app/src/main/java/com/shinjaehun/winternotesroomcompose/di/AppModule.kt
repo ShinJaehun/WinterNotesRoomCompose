@@ -3,6 +3,7 @@ package com.shinjaehun.winternotesroomcompose.di
 import android.app.Application
 import android.content.Context
 import androidx.room.Room
+import com.shinjaehun.winternotesroomcompose.data.IImageStorage
 import com.shinjaehun.winternotesroomcompose.data.ImageStorage
 import com.shinjaehun.winternotesroomcompose.data.NoteDatabase
 import com.shinjaehun.winternotesroomcompose.data.NoteRepositoryImpl
@@ -30,10 +31,28 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideNoteDataRepository(db: NoteDatabase, @ApplicationContext context: Context): INoteRepository {
+    fun provideImageStorage(@ApplicationContext context: Context): IImageStorage {
+        return ImageStorage(context)
+    }
+
+//    @Provides
+//    @Singleton
+//    fun provideNoteDataRepository(db: NoteDatabase, @ApplicationContext context: Context): INoteRepository {
+//        return NoteRepositoryImpl(
+//            dao = db.noteDao,
+//            imageStorage = ImageStorage(context = context)
+//        )
+//    }
+
+    @Provides
+    @Singleton
+    fun provideNoteDataRepository(
+        db: NoteDatabase,
+        imageStorage: IImageStorage
+    ): INoteRepository {
         return NoteRepositoryImpl(
             dao = db.noteDao,
-            imageStorage = ImageStorage(context = context)
+            imageStorage = imageStorage
         )
     }
 }

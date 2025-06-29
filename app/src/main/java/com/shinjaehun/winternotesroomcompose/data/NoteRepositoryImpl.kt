@@ -13,119 +13,60 @@ private const val TAG = "NoteRepositoryImpl"
 
 class NoteRepositoryImpl(
     private val dao: NoteDao,
-    private val imageStorage: ImageStorage
+    private val imageStorage: IImageStorage
 ): INoteRepository {
+
     override fun getNotes(): Flow<List<Note>> {
         return dao.getNotes()
             .map { noteEntities ->
-                coroutineScope {
-                    noteEntities
-                        .map {
-                            async { it.toNote(imageStorage) }
-                        }
-                        .map { it.await() }
-                }
+                noteEntities.map { it.toNote() } // imagePath와 thumbnailPath만 포함
             }
     }
 
-//    override suspend fun insertNote(note: Note) {
-//        val imagePath: String?
-//        if (note.noteId == null) {
-//            if (note.imageBytes != null && note.thumbnailBytes != null) {
-//                imagePath = note.imageBytes.let {
-//                    imageStorage.saveImage(it)
-//                }
-//            } else {
-////                Log.i(TAG, "no image!")
-//                imagePath = null
-//            }
-//        } else {
-//            val beforeUpdateNote = note.noteId.let { dao.getNoteById(it) }
-//            val beforeUpdateNoteImageBytes = beforeUpdateNote.imagePath?.let {
-//                imageStorage.getImage(it)
-//            }
-//            val updateNoteImageBytes = note.imageBytes
-//            val isSameImage = (beforeUpdateNoteImageBytes != null &&
-//                    updateNoteImageBytes != null &&
-//                    beforeUpdateNoteImageBytes.contentEquals(updateNoteImageBytes)) ||
-//                    (beforeUpdateNoteImageBytes == null &&
-//                            updateNoteImageBytes == null)
-//            if (isSameImage) {
-//                Log.i(TAG, "same image!!!!!!!!!!!!!!!!!!!")
-//                imagePath = beforeUpdateNote.imagePath
-//            } else {
-//                Log.i(TAG, "different image")
-//                beforeUpdateNote.imagePath?.let { imageStorage.deleteImage(it) }
-//                imagePath = imageStorage.saveImage(updateNoteImageBytes!!)
-//            }
-//        }
-//
-//        Log.i(TAG, "new Note image path: $imagePath")
-//        dao.insertOrUpdateNote(note.toNoteEntity(imagePath))
-//    }
+    override suspend fun insertNote(note: Note, imageBytes: ByteArray?) {
 
-    override suspend fun insertNote(note: Note) {
-        val imagePathResult: ImagePathResult?
-        if (note.noteId == null) {
-            imagePathResult = if (note.imageBytes != null) {
-                note.imageBytes.let {
-                    imageStorage.saveImageAndThumbnail(it)
+        val imagePathResult: ImagePathResult? =
+            if(note.noteId == null) {
+                imageBytes?.let { imageStorage.saveImageAndThumbnail(it) }
+            } else {
+                val existing = dao.getNoteById(note.noteId)
+                val existingBytes = existing?.imagePath?.let { imageStorage.getImage(it)}
+
+                val isSameImage = imageBytes != null &&
+                        existingBytes != null &&
+                        existingBytes.contentHashCode() == imageBytes.contentHashCode() &&
+                        existingBytes.contentEquals(imageBytes)
+
+                if (isSameImage) {
+                    ImagePathResult(
+                        originalPath = existing?.imagePath,
+                        thumbnailPath = existing?.thumbnailPath
+                    )
+                } else {
+                    existing?.imagePath?.let { imageStorage.deleteImage(it)}
+                    existing?.thumbnailPath?.let { imageStorage.deleteImage(it)}
+                    imageBytes?.let { imageStorage.saveImageAndThumbnail(it)}
                 }
-            } else {
-                null
             }
-        } else {
-            val beforeUpdateNote = note.noteId.let { dao.getNoteById(it) }
-            val beforeUpdateNoteImageBytes = beforeUpdateNote.imagePath?.let {
-                imageStorage.getImage(it)
-            }
-            val updateNoteImageBytes = note.imageBytes
-//            val isSameImage = (beforeUpdateNoteImageBytes != null &&
-//                    updateNoteImageBytes != null &&
-//                    beforeUpdateNoteImageBytes.contentEquals(updateNoteImageBytes)) ||
-//                    (beforeUpdateNoteImageBytes == null &&
-//                            updateNoteImageBytes == null)
 
-            val isSameImage = (beforeUpdateNoteImageBytes != null &&
-                    updateNoteImageBytes != null &&
-                    beforeUpdateNoteImageBytes.contentHashCode() == updateNoteImageBytes.contentHashCode() &&
-                    beforeUpdateNoteImageBytes.contentEquals(updateNoteImageBytes)) ||
-                    (beforeUpdateNoteImageBytes == null && updateNoteImageBytes == null)
-
-            imagePathResult = if (isSameImage) {
-                Log.i(TAG, "same image!!!!!!!!!!!!!!!!!!!")
-                ImagePathResult(
-                    originalPath = beforeUpdateNote.imagePath,
-                    thumbnailPath = beforeUpdateNote.thumbnailPath
-                )
-            } else {
-                Log.i(TAG, "different image")
-                beforeUpdateNote.imagePath?.let { imageStorage.deleteImage(it) }
-                beforeUpdateNote.thumbnailPath?.let { imageStorage.deleteImage(it) }
-                val newResult = imageStorage.saveImageAndThumbnail(updateNoteImageBytes!!)
-                newResult
-            }
-        }
-
-        Log.i(TAG, "new Note image path: $imagePathResult")
-        dao.insertOrUpdateNote(
-            note.toNoteEntity(
-                imagePath = imagePathResult?.originalPath,
-                thumbnailPath = imagePathResult?.thumbnailPath
-            )
+        val updateNote = note.copy(
+            imagePath = imagePathResult?.originalPath,
+            thumbnailPath = imagePathResult?.thumbnailPath
         )
+
+        dao.insertOrUpdateNote(updateNote.toNoteEntity())
     }
 
     override suspend fun getNoteById(noteId: Long): Note {
-        return dao.getNoteById(noteId).toNote(imageStorage)
+        return dao.getNoteById(noteId)?.toNote() ?: throw IllegalStateException("Note not found")
     }
 
     override suspend fun deleteNote(noteId: Long) {
         val entity = dao.getNoteById(noteId)
-        entity.imagePath?.let {
+        entity?.imagePath?.let {
             imageStorage.deleteImage(it)
         }
-        entity.thumbnailPath?.let {
+        entity?.thumbnailPath?.let {
             imageStorage.deleteImage(it)
         }
         dao.deleteNote(noteId)

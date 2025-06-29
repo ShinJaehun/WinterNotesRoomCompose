@@ -13,7 +13,7 @@ interface NoteDao {
     fun getNotes(): Flow<List<NoteEntity>>
 
     @Query("SELECT * FROM winter_notes WHERE noteId = :noteId")
-    suspend fun getNoteById(noteId: Long): NoteEntity
+    suspend fun getNoteById(noteId: Long): NoteEntity?
 
 //    @Query("SELECT * FROM winter_notes WHERE title LIKE '%' || :keyword || '%' OR contents LIKE '%' || :keyword || '%'")
 //    suspend fun searchNote(keyword: String): List<RoomNote>

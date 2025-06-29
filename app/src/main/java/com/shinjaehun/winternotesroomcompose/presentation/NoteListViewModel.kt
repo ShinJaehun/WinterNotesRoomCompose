@@ -1,12 +1,14 @@
 package com.shinjaehun.winternotesroomcompose.presentation
 
 import android.util.Log
+import androidx.annotation.VisibleForTesting
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.shinjaehun.winternotesroomcompose.domain.INoteRepository
+import com.shinjaehun.winternotesroomcompose.domain.ImageColor
 import com.shinjaehun.winternotesroomcompose.domain.Note
 import com.shinjaehun.winternotesroomcompose.domain.NoteValidator
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -31,11 +33,6 @@ class NoteListViewModel @Inject constructor(
     private val repository: INoteRepository
 ): ViewModel() {
 
-//    private val _state = MutableStateFlow(NoteListState(
-//        notes = notes
-//    ))
-//    val state = _state.asStateFlow()
-
     private val _state = MutableStateFlow(NoteListState())
     val state = combine(
         _state,
@@ -49,71 +46,100 @@ class NoteListViewModel @Inject constructor(
     var newNote: Note? by mutableStateOf(null)
         private set
 
+    @VisibleForTesting
+    fun getInternalState(): NoteListState = _state.value
+
+    @VisibleForTesting
+    fun getNewNoteForTest(): Note? = newNote
+
+    @VisibleForTesting
+    fun updateNewNoteForTest(update: (Note?) -> Note?) {
+        newNote = update(newNote)
+    }
+
     fun onEvent(event: NoteListEvent) {
         when(event) {
             NoteListEvent.DeleteNote -> {
-                _state.update { it.copy(isLoading = true) }
                 viewModelScope.launch {
-                    _state.value.selectedNote?.noteId?.let { id ->
-                        _state.update { it.copy(
+                    _state.update {
+                        it.copy(
+                            isLoading = true,
                             isSelectedNoteSheetOpen = false
-                        ) }
+                        )
+                    }
+                    _state.value.selectedNote?.noteId?.let { id ->
                         repository.deleteNote(id)
-                        delay(300L)
-                        _state.update { it.copy(
+                    }
+                    delay(300L)
+                    _state.update {
+                        it.copy(
                             selectedNote = null,
                             isLoading = false
-                        ) }
+                        )
                     }
                 }
             }
             NoteListEvent.DismissNote -> {
-                _state.update { it.copy(isLoading = true) }
                 viewModelScope.launch {
-                    _state.update { it.copy(
-                        isSelectedNoteSheetOpen = false,
-                        isAddNoteSheetOpen = false,
-                        titleError = null,
-                        contentsError = null
-                    ) }
+                    _state.update {
+                        it.copy(
+                            isSelectedNoteSheetOpen = false,
+                            isAddNoteSheetOpen = false,
+                        )
+                    }
                     delay(300L)
-                    _state.update { it.copy(
-                        selectedNote = null,
-                        isLoading = false
-                    ) }
+                    _state.update {
+                        it.copy(
+                            titleError = null,
+                            contentsError = null,
+                            tempImageBytes = null,
+                            selectedNote = null,
+                        )
+                    }
                 }
             }
             is NoteListEvent.EditNote -> {
-                _state.update { it.copy(isLoading = true) }
-                _state.update { it.copy(
-                    selectedNote = null,
-                    isAddNoteSheetOpen = true,
-                    isSelectedNoteSheetOpen = false,
-                    isLoading = false
-                ) }
-                newNote = event.note
+                viewModelScope.launch {
+                    _state.update {
+                        it.copy(
+                            isLoading = true,
+                            isAddNoteSheetOpen = true,
+                            isSelectedNoteSheetOpen = false,
+                        )
+                    }
+                    delay(300L)
+                    _state.update {
+                        it.copy(
+                            isLoading = false,
+                            selectedNote = null,
+                        )
+                    }
+                    newNote = event.note
+                }
             }
             NoteListEvent.OnAddNewNoteClick -> {
-                _state.update { it.copy(isLoading = true) }
-                _state.update { it.copy(
-                    isAddNoteSheetOpen = true,
-                    isLoading = false
-                ) }
-                newNote = Note(
-                    noteId = null,
-                    title = "",
-                    contents = "",
-                    dateTime = currentTime(),
-                    imageBytes = null,
-                    thumbnailBytes = null,
-                    imagePath = null,
-                    thumbnailPath = null,
-                    color = null,
-                    webLink = null,
-                )
+                viewModelScope.launch {
+                    _state.update {
+                        it.copy(
+                            isLoading = true,
+                            isAddNoteSheetOpen = true
+                        )
+                    }
+                    delay(300L)
+                    _state.update { it.copy(isLoading = false)}
+                    newNote = Note(
+                        noteId = null,
+                        title = "",
+                        contents = "",
+                        dateTime = currentTime(),
+                        imagePath = null,
+                        thumbnailPath = null,
+                        color = ImageColor.WHITE,
+                        webLink = null,
+                    )
+                }
             }
             is NoteListEvent.OnColorChanged -> {
-                Log.i(TAG, "color selected: ${event.value.toString()}")
                 newNote = newNote?.copy(
                     color = event.value
                 )
@@ -124,10 +150,23 @@ class NoteListViewModel @Inject constructor(
                 )
             }
             is NoteListEvent.OnImagePicked -> {
-                Log.i(TAG, "On Image Picked, Image Bytes: ${event.bytes}")
+                if (newNote == null) {
+                    newNote = Note(
+                        noteId = null,
+                        title = "",
+                        contents = "",
+                        dateTime = currentTime(),
+                        imagePath = null,
+                        thumbnailPath = null,
+                        color = ImageColor.WHITE,
+                        webLink = null
+                    )
+                }
                 newNote = newNote?.copy(
-                    imageBytes = event.bytes
+                    imagePath = null, // will be replaced after saving
+                    thumbnailPath = null
                 )
+                _state.update { it.copy(tempImageBytes = event.bytes) } // temporary cache
             }
             NoteListEvent.OnImageDeleteClicked -> TODO()
             is NoteListEvent.OnTitleChanged -> {
@@ -142,60 +181,56 @@ class NoteListViewModel @Inject constructor(
             }
             NoteListEvent.OnUrlDeleteClicked -> TODO()
             NoteListEvent.SaveNote -> {
-                _state.update { it.copy(isLoading = true) }
-                newNote?.let { note ->
-                    val result = NoteValidator.validateNote(note)
-                    val errors = listOfNotNull(
-                        result.titleError,
-                        result.contentError
-                    )
-                    if(errors.isEmpty()) {
-                        _state.update { it.copy(
-                            isAddNoteSheetOpen = false,
-                            titleError = null,
-                            contentsError = null
-                        ) }
-                        viewModelScope.launch {
-                            repository.insertNote(note)
+                viewModelScope.launch {
+                    _state.update { it.copy(isLoading = true) }
+                    newNote?.let { note ->
+                        val result = NoteValidator.validateNote(note)
+                        val errors = listOfNotNull(
+                            result.titleError,
+                            result.contentError
+                        )
+                        if (errors.isEmpty()) {
+                            _state.update {
+                                it.copy(
+                                    isAddNoteSheetOpen = false,
+                                    titleError = null,
+                                    contentsError = null
+                                )
+                            }
+                            repository.insertNote(note, _state.value.tempImageBytes)
+                            _state.update {
+                                it.copy(
+                                    tempImageBytes = null,
+                                    isLoading = false
+                                )
+                            }
                             delay(300L)  // UI가 닫히는 애니메이션 타이밍 보장
                             newNote = null
-                            _state.update { it.copy(isLoading = false) }
+
+                        } else {
+                            _state.update {
+                                it.copy(
+                                    titleError = result.titleError,
+                                    contentsError = result.contentError,
+                                    isLoading = false
+                                )
+                            }
                         }
-                    } else {
-                        _state.update { it.copy(
-                            titleError = result.titleError,
-                            contentsError = result.contentError,
-                            isLoading = false
-                        ) }
                     }
                 }
             }
-//            is NoteListEvent.SelectNote -> {
-//                Log.i(TAG, "clicked note: ${event.note}")
-//                viewModelScope.launch {
-//                    _state.update { it.copy(isLoading = true) }
-//
-//                    delay(100)
-//                    _state.update { it.copy(
-//                        selectedNote = event.note,
-//                        isSelectedNoteSheetOpen = true,
-//                        isLoading = false
-//                    )}
-//                 }
-//            }
-
             is NoteListEvent.SelectNote -> {
-                Log.i(TAG, "clicked note: ${event.note}")
                 viewModelScope.launch {
-                    _state.update { it.copy(isLoading = true) }
-
-                    delay(100)   // UI가 닫히는 애니메이션 타이밍 보장
-
-                    val lightNote = event.note.copy(imageBytes = null) // 이미지 제거
                     _state.update {
                         it.copy(
-                            selectedNote = lightNote,
+                            isLoading = true,
                             isSelectedNoteSheetOpen = true,
+                        )
+                    }
+                    delay(300)   // UI가 닫히는 애니메이션 타이밍 보장
+                    _state.update {
+                        it.copy(
+                            selectedNote = event.note,
                             isLoading = false
                         )
                     }
@@ -204,7 +239,6 @@ class NoteListViewModel @Inject constructor(
             else -> Unit
         }
     }
-
 }
 
 //private val notes = (1..30).map {

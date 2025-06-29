@@ -5,8 +5,8 @@ data class Note(
     val title: String,
     val contents: String,
     val dateTime: String,
-    val imageBytes: ByteArray?,
-    val thumbnailBytes: ByteArray?,
+//    val imageBytes: ByteArray?,
+//    val thumbnailBytes: ByteArray?,
 
     val imagePath: String?,           // ✅ 추가
     val thumbnailPath: String?,           // ✅ 추가
